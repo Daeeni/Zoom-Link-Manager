@@ -57,9 +57,24 @@
                 <DataGridTextColumn Binding="{Binding Path=Fach}" MinWidth="120"/>
                 <DataGridTextColumn Header="Tag" Binding="{Binding Path=Day}" MinWidth="110"/>
                 <DataGridTextColumn Header="Zeit" Binding="{Binding Path=Time, StringFormat=\{0:HH:mm\}}" MinWidth="90"/>
-                <DataGridHyperlinkColumn Header="Link" Binding="{Binding Path=Link}"/>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button IsEnabled="True" Content="{Binding Path=Link}" 
+                                    Foreground="Blue" Background="Transparent" BorderThickness="0">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Click">
+                                        <cal:ActionMessage MethodName="OpenLink">
+                                            <cal:Parameter Value="{Binding}" />
+                                        </cal:ActionMessage>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Width="*">
-                    <DataGridTemplateColumn.CellTemplate> 
+                    <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button IsEnabled="True" Content="Delete"  >
                                 <i:Interaction.Triggers>
@@ -74,25 +89,8 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
-            
-            
+
+
         </DataGrid>
     </Grid>
 </Window>
-
-
-<!--<DataGridTemplateColumn.CellTemplate>
-    --><!--RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.UpdateFach--><!--
-    <DataTemplate>
-        <Button Click="{Binding}" 
-                                    IsEnabled="True" Content="Update"/>
-    </DataTemplate>
-</DataGridTemplateColumn.CellTemplate>-->
-
-<!--<DataGridHyperlinkColumn.ElementStyle>
-                        <Style>
-                            <EventSetter Event="Hyperlink.Click" Handler="Hyperlink_Click"/>
-                        </Style>
-                    </DataGridHyperlinkColumn.ElementStyle>-->
-
-<!--"{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=DataContext.UpdateFach}" IsEnabled="True"-->

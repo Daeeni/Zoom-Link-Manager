@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows;
 using Zoom_Link_Manager.Models;
 
 namespace Zoom_Link_Manager.ViewModels
@@ -95,7 +96,11 @@ namespace Zoom_Link_Manager.ViewModels
             FachBox = "";
             NotifyOfPropertyChange(() => FaecherBindable);
         }
-        public static void OpenLink(String url)
+        public void OpenLink(object item)
+        {
+            OpenBrowser(((FachModel)item).Link.ToString());
+        }
+        public static void OpenBrowser(String url)
         {
             var psi = new System.Diagnostics.ProcessStartInfo();
             psi.UseShellExecute = true;
@@ -111,7 +116,7 @@ namespace Zoom_Link_Manager.ViewModels
                 TimeSpan now = DateTime.Now.TimeOfDay;
                 if(now <= fachTimer && now > offset && fach.Day == DateTime.Now.DayOfWeek)
                 {
-                    OpenLink(fach.Link.ToString());
+                    OpenBrowser(fach.Link.ToString());
                 }
             }
         }
