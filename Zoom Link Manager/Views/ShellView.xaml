@@ -11,6 +11,13 @@
     <DataGrid x:Name="FaecherBindable" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="6"
                     AlternatingRowBackground="LightGray" CanUserAddRows="True"
                     AutoGenerateColumns="False" HeadersVisibility="Column">
+        <i:Interaction.Triggers>
+            <i:EventTrigger EventName="CurrentCellChanged">
+                <cal:ActionMessage MethodName="EditGrid">
+                    <cal:Parameter Value="{Binding}" />
+                </cal:ActionMessage>
+            </i:EventTrigger>
+        </i:Interaction.Triggers>
         <DataGrid.Columns >
             <DataGridTextColumn Binding="{Binding Path=Fach}" MinWidth="120"
                                     Header="Fach"/>

@@ -15,7 +15,6 @@ namespace Zoom_Link_Manager.Models
         public string Fach { get; set; }
         public string Time { get; set; }
         public DayOfWeek Day { get; set; }
-
         [JsonConstructor]
         public FachModel(string link, string fach, string time, DayOfWeek day)
         {
