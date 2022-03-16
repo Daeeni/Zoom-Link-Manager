@@ -1,6 +1,8 @@
 ﻿using Caliburn.Micro;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -12,8 +14,13 @@ namespace Zoom_Link_Manager.ViewModels
     {
         public ShellViewModel()
         {
+            _faecherBindable = new(PersistentStorage.GetFaecher());
+            //_faecherBindable.CollectionChanged += ContentCollectionChanged;
+            
+
             System.Timers.Timer timer = TimerBackgroundService.SetTimer();
             timer.Elapsed += OnTimerEnd;
+            AttemptingDeactivation += (sender, args) => timer.Dispose();
         }
 
         private string _fachBox = "Test Fach";
@@ -21,7 +28,7 @@ namespace Zoom_Link_Manager.ViewModels
         private string _zeitBox = "12:15";
         private DayOfWeek _selectedTag = DayOfWeek.Monday; 
         private IEnumerable<DayOfWeek> _tage = Enum.GetValues(typeof(DayOfWeek)).Cast<DayOfWeek>();
-        private BindableCollection<FachModel> _faecherBindable = new(FileAccess.GetFaecher());
+        private BindableCollection<FachViewModel> _faecherBindable;
 
         public string FachBox 
         {
@@ -64,41 +71,25 @@ namespace Zoom_Link_Manager.ViewModels
                 NotifyOfPropertyChange();
             }
         }
-        public BindableCollection<FachModel> FaecherBindable
+        public BindableCollection<FachViewModel> FaecherBindable
         {
-            set { _faecherBindable = value; }
+            set { 
+                _faecherBindable = value;
+                PersistentStorage.WriteFaecher(_faecherBindable.ToList<FachViewModel>());
+                NotifyOfPropertyChange(() => FaecherBindable);
+            }
             get { return _faecherBindable; }
-        }
-        public void DeleteFach(object item)
-        {
-            FaecherBindable.Remove((FachModel)item);
-            FileAccess.WriteFaecher(FaecherBindable.ToList<FachModel>());
-        }
-        public void UpdateFach(object item)
-        {
-            FileAccess.WriteFaecher(FaecherBindable.ToList<FachModel>());
-        }
-        public bool CanAddFach(string fachBox, string zeitBox, string linkBox, DayOfWeek selectedTag)
-        {
-            string pattern = @"^(?:[01]?\d|2[0-3])(?::[0-5]\d){1,2}$";
-            return !String.IsNullOrWhiteSpace(fachBox)
-                && !String.IsNullOrWhiteSpace(zeitBox)
-                && Uri.IsWellFormedUriString(linkBox, UriKind.Absolute)
-                && Regex.IsMatch(zeitBox, pattern)
-                && Enum.IsDefined(typeof(DayOfWeek), selectedTag);
-        }
-        public void AddFach(string fachBox, string zeitBox, string linkBox, DayOfWeek selectedTag)
-        {
-            FaecherBindable.Add(new FachModel(linkBox, fachBox, zeitBox, selectedTag));
-            FileAccess.WriteFaecher(FaecherBindable.ToList<FachModel>());
-            ZeitBox = "";
-            LinkBox = "";
-            FachBox = "";
-            NotifyOfPropertyChange(() => FaecherBindable);
         }
         public void OpenLink(object item)
         {
-            OpenBrowser(((FachModel)item).Link.ToString());
+            try
+            {
+                OpenBrowser(((FachViewModel)item).Link);
+            }
+            catch (System.InvalidCastException)
+            {
+            }
+            
         }
         public static void OpenBrowser(String url)
         {
@@ -108,17 +99,42 @@ namespace Zoom_Link_Manager.ViewModels
             System.Diagnostics.Process.Start(psi);
         }
         private void OnTimerEnd(Object source, System.Timers.ElapsedEventArgs e)
+
         {
-             foreach (FachModel fach in FaecherBindable.ToList<FachModel>())
+            foreach (FachViewModel fach in FaecherBindable.ToList<FachViewModel>())
             {
-                TimeSpan fachTimer = fach.Time.TimeOfDay;
+                TimeSpan fachTimer = TimeSpan.Parse(fach.Time);
                 TimeSpan offset = fachTimer - TimeSpan.FromMinutes(5);
                 TimeSpan now = DateTime.Now.TimeOfDay;
-                if(now <= fachTimer && now > offset && fach.Day == DateTime.Now.DayOfWeek)
+                if (now <= fachTimer && now > offset && fach.Day == DateTime.Now.DayOfWeek)
                 {
                     OpenBrowser(fach.Link.ToString());
                 }
             }
         }
+        //public void ContentCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        //{
+        //    if (e.Action == NotifyCollectionChangedAction.Remove)
+        //    {
+        //        foreach (FachViewModel item in e.OldItems)
+        //        {
+        //            Removed items
+        //            item.PropertyChanged -= EntityViewModelPropertyChanged;
+        //        }
+        //    }
+        //    else if (e.Action == NotifyCollectionChangedAction.Add)
+        //    {
+        //        foreach (FachViewModel item in e.NewItems)
+        //        {
+        //            Added items
+        //            item.PropertyChanged += EntityViewModelPropertyChanged;
+        //        }
+        //    }
+        //}
+        //public void EntityViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    PersistentStorage.WriteFaecher(FaecherBindable.ToList<FachViewModel>());
+        //}
+
     }
 }
